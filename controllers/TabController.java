@@ -1,73 +1,99 @@
-package sstream.controllers;
+/*
+ * so here's the dealio, everything is contained within this tab. so i could
+ * split things up and make things convoluted as all hell by assigning the
+ * methods to a "proper" classname that matches their origin components.
+ * however i would always be calling TabController to reference the class
+ * anyways.. what do?
+ */
 
-import sstream.components.Tab;
+package jim.controllers;
+
+import java.lang.StringBuilder;
 
 import javax.swing.JTabbedPane;
 import javax.swing.JScrollPane;
-import javax.swing.undo.*;
+
+import jim.components.Tab;
+import jim.components.WorkArea;
 
 public abstract class TabController {
 
   private final static JTabbedPane pane = new JTabbedPane();
 
-  public static Tab newTab(final String title) {
-    final Tab tab = new Tab();
-    pane.addTab(title, tab);
-    pane.setSelectedIndex(pane.getTabCount() - 1);
-    return tab;
-  }
-  
-  public static Tab tab() {
-    return ((Tab)pane.getSelectedComponent());
-  }
-  
-  public static java.io.File file() {
-    return tab().getFile();
-  }
-  
-  public static void setFile(java.io.File file) {
-    tab().setFile(file);
-  }
-
-  public static JScrollPane getTab(final int n) {
-    return (JScrollPane)pane.getTabComponentAt(n);
-  }
-
-  public static void nextTab() {
-    pane.setSelectedIndex(pane.getSelectedIndex() + 1);
-  }
-
-  public static void prevTab() {
-    pane.setSelectedIndex(pane.getSelectedIndex() - 1);
-  }
-
-  public static void closeTab() {
-    pane.remove(pane.getSelectedIndex());
-  }
-
   public static JTabbedPane pane() {
     return pane;
   }
 
-  public static void undo() {
-    tab().undo();
-  }
-  public static void redo() {
-    tab().redo();
+  protected static Tab tab() {
+     return ((Tab)pane.getSelectedComponent());
   }
   
-  public static String getText() {
-    return tab().getText();
-  }
-  
-  public static void setSaveState(boolean state) {
-    tab().setSaveState(state);
-  }
-  public static boolean getSaveState() {
-    return tab().saveExists();
-  }
-  public static void setTabTitle() {
-    pane.setTitleAt(pane.getSelectedIndex(), file().getName());
+  public static void newTab(final String title) {
+    Tab tab = new Tab();
+    pane.addTab(title, tab);
+    pane.setSelectedIndex(pane.getTabCount() - 1);
+    pane.setIconAt(pane.getSelectedIndex(), tab.icon());
+    workarea().pad().addKeyListener(new KeyController());
+    focus();
   }
 
+  protected static void nextTab() {
+    int idx = pane.getSelectedIndex(); 
+    int count = pane.getTabCount() - 1;
+    if(idx == count)
+      pane.setSelectedIndex(0);
+    else 
+      pane.setSelectedIndex(idx + 1);
+
+    focus();
+  }
+
+  protected static void prevTab() {
+    int idx = pane.getSelectedIndex(); 
+    int count = pane.getTabCount() - 1;
+    if(idx == 0)
+      pane.setSelectedIndex(count);
+    else 
+      pane.setSelectedIndex(idx - 1);
+      
+    focus();
+  }
+
+  protected static void closeTab() {
+    if(pane.getTabCount() <= 0) return;
+
+    pane.remove(pane.getSelectedIndex());
+    
+    if(pane.getTabCount() > 0) 
+      focus();
+  }
+ 
+  protected static void setTabTitle() {
+    String file = workarea().file().getName();
+    pane.setTitleAt(pane.getSelectedIndex(), file);
+  }  
+ 
+  public static void setLineCount(int lines) {
+    StringBuilder str = new StringBuilder();
+    str.append("<html>");
+    for(int i = 1; i <= lines; i++) {
+      str.append(i+"<br />");
+    }
+    str.append("</html>");
+    workarea().linenumbers().set(lines);
+    workarea().linenumbers().write(str.toString());
+  }
+
+  protected static WorkArea workarea() {
+    return tab().workarea();
+  }
+  
+  protected static void focus() {
+    if(tab() != null && workarea().pad().isFocusable())
+      workarea().focus();
+  }
+  
+  protected static void write(String content) {
+    workarea().pad().append(content);
+  }
 }

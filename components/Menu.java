@@ -1,10 +1,12 @@
-package sstream.components;
+package jim.components;
 
 import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 
 public class Menu extends JMenu {
-  public Menu(sstream.controllers.MenuController.Categories category) {
+  
+  private static final long serialVersionUID = 1L;
+
+  public Menu(jim.controllers.MenuController.Categories category) {
     this.setText(category.toString());
     this.setMnemonic(category.mnemonic());
   }
